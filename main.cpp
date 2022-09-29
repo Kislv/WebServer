@@ -8,7 +8,14 @@
 #include <unistd.h>
 #include <iostream>
 #include <fstream>
+
+#include "include/http.h"
+
 #define PORT 8080
+#define GET "GET"
+#define HEAD "HEAD"
+
+const std::string DOCUMENT_ROOT = "../Storage/";
 
 int intLength (int n) { 
     int base = 10;
@@ -17,6 +24,7 @@ int intLength (int n) {
         ++number_of_digits; 
         n /= base;
     } while (n);
+    return number_of_digits;
 }
 
 int main(int argc, char const* argv[])
@@ -27,7 +35,7 @@ int main(int argc, char const* argv[])
 	int addrlen = sizeof(address);
 	char buffer[1024] = { 0 };
 	// char* hello = "Hello from server";
-	char* hello = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length: 16\n\n<h1>testing</h1>";
+	// char* hello = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length: 16\n\n<h1>testing</h1>";
 
 	// Creating socket file descriptor
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -67,24 +75,18 @@ int main(int argc, char const* argv[])
 	valread  =  read(new_socket, buffer, 1024);
 	printf("%s\n", buffer);
 
-    // Read html file
-    // long fsize;
-    // FILE *fp = fopen("../index.html", "r");
-    // // fseek(fp, 0, SEEK_END);
-    // fseek(fp, 0, EOF);
-    // std::cout<<"fseek = "<<fseek<<std::endl;
-    // fsize = ftell(fp);
-    // rewind(fp);
-    // char *msg = (char*)(malloc(fsize + 1));
-    // fread(msg, sizeof(msg), 1, fp);
-    // std::cout<< msg<<std::endl;
+    Request request;
+    request.parse(buffer);
+    request.print();
 
     std::ifstream myfile; 
-    myfile.open("../index.html");
+    myfile.open(DOCUMENT_ROOT + request.buildFilePath());
+    // myfile.open("../page/_html.html");
     std::string mystring, fullFile;
 
+
     if ( myfile.is_open() ) { // always check whether the file is open
-        while ( myfile.good() ) {
+        while (myfile.good()) {
             std::getline(myfile, mystring);
             // myfile >> mystring;
             fullFile += mystring;
@@ -98,11 +100,16 @@ int main(int argc, char const* argv[])
 
     }
 
-    std::string headers = "";
-    headers  +=  "HTTP/1.1 200 OK\n";
-    headers  +=  "Content-length: " + fullFile.size();
-    headers  +=  "\n";
-    headers  +=  "Content-Type: text/html\n\n";
+    Response response;
+
+    response.build(request);
+    std::string headers = response.buildHeaders(fullFile.size(), request.url);
+    // std::string headers = "";
+    // headers  +=  response.protocol "HTTP/1.1 200 OK\n";
+    // headers  +=  "HTTP/1.1 200 OK\n";
+    // headers  +=  "Content-length: " + fullFile.size();
+    // headers  +=  "\n";
+    // headers  +=  "Content-Type: text/html\n\n";
 
     // write(new_socket, "HTTP/1.1 200 OK\n", 16);
     // mystring = "Content-length: " + fullFile.size();
@@ -119,7 +126,7 @@ int main(int argc, char const* argv[])
     else{
         printf("failed sending message\n");
     }
-	printf("Hello message sent\n");
+	// printf("Hello message sent\n");
 
 	// closing the connected socket
 
