@@ -1,9 +1,12 @@
 #include "../include/http.h"
 #include <stdio.h>
 #include <time.h>
+#include <map>
 
-const std::string HTMLEXTENSION = ".html";
+const std::string HTMLEXTENSION = "html";
 const std::string DEFAULTFILE = "index.html";
+
+
 // const std::string SLASH = "/";
 
 void Request::parse(std::string request){
@@ -49,19 +52,42 @@ std::string Request::buildFilePath() {
     if(url == "") {
         return "index.html";
     }
-    if (url.substr(url.length() - HTMLEXTENSION.length(), url.length()) == HTMLEXTENSION) {
-        return  url;
-    }
+
     if (url[url.length() - 1] == '/') {
         return url + DEFAULTFILE;
     }
+
+    // TODO check security with specific symbols
+    // if (url.substr(url.length() - HTMLEXTENSION.length(), url.length()) == HTMLEXTENSION) {
+    //     return  url;
+    // }
+    return url;
 };
 
 std::string Response::defineContentType(std::string url) const {
+    const std::map<std::string, std::string> extensionsContentType {
+        {"html", "text/html"},
+        {"css", "text/css"},
+        {"js", "application/javascript"},
+        {"jpg", "image/jpeg"},
+        {"jpeg", "image/jpeg"},
+        {"png", "image/png"},
+        {"gif", "image/gif"},
+        {"swf", "application/x-shockwave-flash"}
+    };
+    // TODO get pos of last point
     std::size_t pos = url.find('.');
     if (pos != std::string::npos) {
         std::cout<<"PPPPPPPPPPPPPPPPPPPPPPPOOOOOOOOOOOOOSSSSSSSSSSS "<< pos<<std::endl;
-        return url.substr(pos); 
+        std::cout<<"SUUUUBSTRSUUUUBSTRSUUUUBSTRSUUUUBSTRSUUUUBSTRSUUUUBSTRSUUUUBSTR "<< url.substr(pos + 1)<<std::endl;
+        // return url.substr(pos + 1); 
+        auto contentTypeIt = extensionsContentType.find(url.substr(pos + 1));
+        if (contentTypeIt != extensionsContentType...()){
+            return contentTypeIt->second;
+        } else {
+            // error(1);
+            exit(1);
+        }
     } else {
         return HTMLEXTENSION;
     }
@@ -108,9 +134,15 @@ std::string Response::buildHeaders(int contentLength, std::string url) const {
     return headers;
 };
 
-std::string Response::build(Request request) {
+std::string Response::checkPermissions(Request request) {
     if (request.method != "GET" && request.method != "HEAD") {
         status = 405;
         explanation = "Method Not Allowed";
     };
+
+    if (request.url.find("../") != request.url.end() || request.url.find("~") != request.url.end() || request.url.find("//") != request.url.end()){
+        status = 403;
+        explanation = "Forbidden";
+    
+    }
 }

@@ -31,7 +31,7 @@ public:
     int status = 200;
     std::string explanation = "OK";
     std::string buildHeaders(int contentLength, std::string url) const;
-    std::string build(Request request);
+    std::string checkPermissions(Request request);
 private:
     std::string defineContentType(std::string url) const;
 };

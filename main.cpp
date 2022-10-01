@@ -72,6 +72,8 @@ int main(int argc, char const* argv[])
 		perror("accept");
 		exit(EXIT_FAILURE);
 	}
+
+    // TODO read image and others file extensions
 	valread  =  read(new_socket, buffer, 1024);
 	printf("%s\n", buffer);
 
@@ -102,7 +104,8 @@ int main(int argc, char const* argv[])
 
     Response response;
 
-    response.build(request);
+    // TODO check is file exist 404
+    response.checkPermissions(request); 
     std::string headers = response.buildHeaders(fullFile.size(), request.url);
     // std::string headers = "";
     // headers  +=  response.protocol "HTTP/1.1 200 OK\n";
@@ -118,7 +121,10 @@ int main(int argc, char const* argv[])
     // write(new_socket, "Content-Type: text/html\n\n", 25);
     // write(new_socket, "<html><body><H1>Hello world</H1></body></html>",46); 
     // if((send(new_socket, &(mystring[0]), mystring.size()+1, 0)) > 0){
-    headers += fullFile;
+    
+    if (response.status == 200) {
+        headers += fullFile;
+    }
     std::cout<< headers<<std::endl;
     if((send(new_socket, &(headers)[0], headers.size()+1, 0)) > 0){
         printf("successed sending message\n");
