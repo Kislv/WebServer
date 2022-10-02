@@ -16,6 +16,11 @@ void Request::parse(std::string request){
     request = request.substr(methodEnd+1, request.length());
     int urlEnd = request.find(' ');
     url = request.substr(0, urlEnd);
+
+    auto startQueryString = url.find("?");
+    if (startQueryString != std::string::npos){
+        url = url.substr(0, startQueryString);
+    }
     percentDecode();
 
 }
