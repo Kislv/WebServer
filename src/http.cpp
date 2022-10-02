@@ -54,10 +54,10 @@ std::string Response::defineContentType(std::string url) const {
         {"swf", "application/x-shockwave-flash"}
     };
     // TODO get pos of last point
-    std::size_t pos = url.find('.');
+    std::size_t pos = url.find_last_of('.');
     if (pos == std::string::npos) {
         url += DEFAULTFILE;
-        pos = url.find('.');
+        pos = url.find_last_of('.');
     }
     auto contentTypeIt = extensionsContentType.find(url.substr(pos + 1));
     if (contentTypeIt != extensionsContentType.end()){
