@@ -1,13 +1,14 @@
 #include "../include/http.h"
 #include <stdio.h>
 #include <time.h>
-#include <map>
+#include <unordered_map>
+#include <filesystem>
+#include <algorithm>
+
 
 const std::string HTMLEXTENSION = "html";
 const std::string DEFAULTFILE = "index.html";
 
-
-// const std::string SLASH = "/";
 
 void Request::parse(std::string request){
     int methodEnd = request.find(' ');
@@ -15,35 +16,17 @@ void Request::parse(std::string request){
     request = request.substr(methodEnd+1, request.length());
     int urlEnd = request.find(' ');
     url = request.substr(0, urlEnd);
-    
+    percentDecode();
 
-    // method = "";
-    // std::cout<<"request.size() = "<< request.size()<<std::endl;
-    // for (int i = 0; i < request.size(); i++){
-    //     if (request[i] == *" "){
-    //         return;
-    //     } else {
-    //         method += request[i];
-    //     }
-    // }
 }
 
-// void methodToEnum(std::string str){
-//     if (str == "GET"){
-//         method = Method(GET);
-//     }
-// }
-
 void Request::print(){
-    std::cout<<"REQUEST"<<std::endl;
+    std::cout<<"--------------------------REQUEST--------------------------"<<std::endl;
     std::cout<<"Method = "<< method <<std::endl;
     std::cout<<"Url = "<< url <<std::endl;
-    // std::cout<<"Protocol = "<< protocol <<std::endl;
-    // for (int i = 0; i < headers.size(); i++){
-    //     std::cout<< "Name = " << headers[i].first<<" Value = "<< headers[i].second<<std::endl;
-    // }
-    // std::cout<<"Content = "<< std::string(content.begin(), content.end()) <<std::endl;
     std::cout<<std::endl;
+    std::cout<<"-----------------------------------------------------------"<<std::endl;
+
 }
 
 std::string Request::buildFilePath() {
@@ -56,16 +39,11 @@ std::string Request::buildFilePath() {
     if (url[url.length() - 1] == '/') {
         return url + DEFAULTFILE;
     }
-
-    // TODO check security with specific symbols
-    // if (url.substr(url.length() - HTMLEXTENSION.length(), url.length()) == HTMLEXTENSION) {
-    //     return  url;
-    // }
     return url;
 };
 
 std::string Response::defineContentType(std::string url) const {
-    const std::map<std::string, std::string> extensionsContentType {
+    const std::unordered_map<std::string, std::string> extensionsContentType {
         {"html", "text/html"},
         {"css", "text/css"},
         {"js", "application/javascript"},
@@ -77,27 +55,18 @@ std::string Response::defineContentType(std::string url) const {
     };
     // TODO get pos of last point
     std::size_t pos = url.find('.');
-    if (pos != std::string::npos) {
-        std::cout<<"PPPPPPPPPPPPPPPPPPPPPPPOOOOOOOOOOOOOSSSSSSSSSSS "<< pos<<std::endl;
-        std::cout<<"SUUUUBSTRSUUUUBSTRSUUUUBSTRSUUUUBSTRSUUUUBSTRSUUUUBSTRSUUUUBSTR "<< url.substr(pos + 1)<<std::endl;
-        // return url.substr(pos + 1); 
-        auto contentTypeIt = extensionsContentType.find(url.substr(pos + 1));
-        if (contentTypeIt != extensionsContentType...()){
-            return contentTypeIt->second;
-        } else {
-            // error(1);
-            exit(1);
-        }
-    } else {
-        return HTMLEXTENSION;
+    if (pos == std::string::npos) {
+        url += DEFAULTFILE;
+        pos = url.find('.');
     }
-    // for ( std::string::iterator it=url.end(); it!=url.begin(); --it){
-    //     std::cout << *it;
-    //     if (*it == '.') {
-    //         return url.substr(url.find('.'));
-    //     }
-    //     std::cout << '\n';
-    // }
+    auto contentTypeIt = extensionsContentType.find(url.substr(pos + 1));
+    if (contentTypeIt != extensionsContentType.end()){
+        return contentTypeIt->second;
+    } else {
+        perror("ERROR: undefined file extension");
+        return "none";
+        // exit(1);
+    }
 }
 
 std::string Response::buildHeaders(int contentLength, std::string url) const {
@@ -105,7 +74,6 @@ std::string Response::buildHeaders(int contentLength, std::string url) const {
     headers  +=  protocol + " ";
     headers  +=  std::to_string(status) + " ";
     headers  +=  explanation + "\n";
-    headers += "Server: KiselevServer/1\n";
 
     // Generate current date
     headers += "Date: ";
@@ -115,34 +83,67 @@ std::string Response::buildHeaders(int contentLength, std::string url) const {
     strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
     headers += buf;
     headers += "\n";
-    
-    headers += "Connection: closed\n";
 
+    headers += "Server: KiselevServer/1\n";
+   
     if (status == 200) {
         headers  +=  "Content-length: " + std::to_string(contentLength);
         headers  +=  "\n";
-        
-        // headers  +=  "Content-Type: text/html\n\n";
         headers  +=  "Content-Type: ";
         headers  +=  this->defineContentType(url);
-        headers += "\n\n";
+        headers += "\n";
 
-        headers  +=  "\n\n";
-        // headers  +=  "Content-Type: text/html\n\n";
         //TODO sprintf, cause concatination is long
     }
+    
+    headers += "Connection: close\n\n";
+
+    // print(headers);
     return headers;
 };
 
-std::string Response::checkPermissions(Request request) {
+void Response::checkPermissions(const Request request) {
     if (request.method != "GET" && request.method != "HEAD") {
         status = 405;
         explanation = "Method Not Allowed";
     };
-
-    if (request.url.find("../") != request.url.end() || request.url.find("~") != request.url.end() || request.url.find("//") != request.url.end()){
+    
+    if (request.url.find("../") != std::string::npos || request.url.find("~") != std::string::npos || request.url.find("//") != std::string::npos){
         status = 403;
         explanation = "Forbidden";
-    
     }
 }
+
+void Response::print(std::string headers) const {
+    std::cout<<"--------------------------Response--------------------------"<<std::endl;
+    std::cout<<headers<<std::endl;
+    std::cout<<"------------------------------------------------------------"<<std::endl;
+};
+
+
+void Request::percentDecode(){
+    std::string newURL = "";
+    for (std::string::iterator i = url.begin(); i != url.end(); i++){
+        if (*i == '%') {
+            newURL += 16*(toHex(i[1])) + (toHex(i[2]));
+            i += 2;
+        } else {
+            newURL += *i;
+        }
+    }
+    url = newURL;
+};
+
+char Request::toHex(char c){
+    if (!isxdigit(c)){
+        perror("ERROR: char is not 16-bit digit");
+        exit(2);
+    }
+    if (c >= '0' && c <= '9'){
+        return c - '0';
+    } else {
+        return 10 + (c - 'A');
+    }
+    
+}
+

@@ -22,7 +22,9 @@ public:
     void methodToEnum(std::string str);
     void print ();
     std::string buildFilePath();
-
+    void percentDecode();
+private:
+    char toHex(char c);
 };
 
 class Response {
@@ -31,7 +33,8 @@ public:
     int status = 200;
     std::string explanation = "OK";
     std::string buildHeaders(int contentLength, std::string url) const;
-    std::string checkPermissions(Request request);
+    void checkPermissions(const Request request);
+    void print(std::string headers) const;
 private:
     std::string defineContentType(std::string url) const;
 };
