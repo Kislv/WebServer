@@ -42,6 +42,7 @@ void fileExist (Request request,  Response &response){
             return;
         } else {
             response.status = 403;
+            std::cout<<"403 45"<<std::endl;
             response.explanation = "Forbidden";
             return;
         }

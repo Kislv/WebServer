@@ -78,12 +78,12 @@ int main(int argc, char const* argv[])
 
         // TODO read image and others file extensions
         valread  =  read(new_socket, buffer, 1024);
-        // printf("%s\n", buffer);
 
         Request request;
         request.parse(buffer);
 
         #ifdef DEBUG
+        // printf("%s\n", buffer);
         request.print();
         #endif
 
@@ -100,8 +100,9 @@ int main(int argc, char const* argv[])
 
         std::string fullFile;
         int fileSize  = 0;
-        if (response.status == 200 && request.method == "GET") {
-            fullFile = readFile(request) + '\n';
+        if (response.status == 200 && (request.method == "GET" || request.method == "HEAD")) {
+            // fullFile = readFile(request) ;
+            fullFile = readFile(request);
             fileSize = fileLength(request);
         }
 
@@ -110,20 +111,22 @@ int main(int argc, char const* argv[])
 
 
         #ifdef DEBUG
-        response.print(headers);
         // std::cout<<"FULLFILE::::::::::::::::::::::"<<fullFile<< std::endl;
         #endif
-
+        response.print(headers);
         if (response.status == 200  && request.method == "GET") {
+        // if (response.status == 200  && request.method == "GET" && request.content.size() < 200) {
             headers += fullFile;
+            // headers += "\r\n\r\n";
         }
         if (request.method == "HEAD") {
-            headers += '\n';
+            // headers += "\r\n\r\n";
+            // headers += '\n';
         }
 
 
         std::cout<<"*****************************************************************************************************************"<<std::endl;
-        if((send(new_socket, &(headers)[0], headers.size()+1, 0)) > 0){
+        if((send(new_socket, &(headers)[0], headers.size(), 0)) > 0){
             // printf("successed sending message\n");
         }     
         else{

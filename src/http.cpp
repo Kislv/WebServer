@@ -48,10 +48,18 @@ std::string Request::buildFilePath() {
     url = url.substr(1);
     size_t lastPoint = url.find_last_of('.');
     size_t lastSlash = url.find_last_of('/');
-    if (lastPoint != std::string::npos && lastSlash != std::string::npos && extensionsContentType.find(url.substr(lastPoint, lastSlash)) != extensionsContentType.end()){
-        return url.substr(0, url.length() - 1);
+    // std::string urlWithoutLastSlash = 
+
+    if (lastPoint != std::string::npos && lastSlash != std::string::npos && lastSlash > lastPoint && extensionsContentType.find(url.substr(lastPoint+1, lastSlash - lastPoint - 1)) != extensionsContentType.end()){
+        return url;
+        // return url.substr(0, url.length() - 1);
     }
     if(url == "" || url[url.length() - 1] =='/' && url.find_last_of('.') ) {
+        // if (url.length()>18) {
+        //     std::cout <<"lastPoint = "<<lastPoint<< " char = "<<url[lastPoint]<<std::endl;
+        //     std::cout <<"lastSlash = "<<lastSlash<< " char = "<<url[lastSlash]<<std::endl;
+        //     std::cout <<"url.substr(lastPoint, lastSlash) = "<<url.substr(lastPoint+1, lastSlash - lastPoint - 1)<<std::endl;
+        // }
         isIndex = true;
         return url + DEFAULTFILE;
     }
@@ -80,7 +88,7 @@ std::string Response::buildHeaders(int contentLength, std::string url) const {
     std::string headers = "";
     headers  +=  protocol + " ";
     headers  +=  std::to_string(status) + " ";
-    headers  +=  explanation + "\n";
+    headers  +=  explanation + "\r\n";
 
     // Generate current date
     headers += "Date: ";
@@ -89,21 +97,22 @@ std::string Response::buildHeaders(int contentLength, std::string url) const {
     struct tm tm = *gmtime(&now);
     strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
     headers += buf;
-    headers += "\n";
+    headers += "\r\n";
 
-    headers += "Server: KiselevServer/1\n";
+    headers += "Server: KiselevServer/1\r\n";
    
     if (status == 200) {
         headers  +=  "Content-length: " + std::to_string(contentLength);
-        headers  +=  "\n";
+        headers  +=  "\r\n";
         headers  +=  "Content-Type: ";
         headers  +=  this->defineContentType(url);
-        headers += "\n";
+        headers += "\r\n";
 
         //TODO sprintf, cause concatination is long
     }
     
-    headers += "Connection: close\n\n";
+    headers += "Connection: close\r\n\r\n";
+    // headers += "Connection: close\n\n";
 
     // print(headers);
     return headers;
@@ -116,6 +125,7 @@ void Response::checkPermissions(const Request request) {
     };
     
     if (request.url.find("../") != std::string::npos || request.url.find("~") != std::string::npos || request.url.find("//") != std::string::npos){
+        std::cout<<"403 119"<<std::endl;
         status = 403;
         explanation = "Forbidden";
     }
@@ -123,7 +133,7 @@ void Response::checkPermissions(const Request request) {
 
 void Response::print(std::string headers) const {
     std::cout<<"--------------------------Response--------------------------"<<std::endl;
-    std::cout<<headers<<std::endl;
+    std::cout<<headers;
     std::cout<<"------------------------------------------------------------"<<std::endl;
 };
 
@@ -132,6 +142,8 @@ void Request::percentDecode(){
     std::string newURL = "";
     for (std::string::iterator i = url.begin(); i != url.end(); i++){
         if (*i == '%') {
+            // char first, second;
+            // first = 
             newURL += 16*(toHex(i[1])) + (toHex(i[2]));
             i += 2;
         } else {
@@ -149,7 +161,11 @@ char Request::toHex(char c){
     if (c >= '0' && c <= '9'){
         return c - '0';
     } else {
+        if (c >= 'a' && c <= 'f') {
+            return 10 + (c - 'a');
+        } else {
         return 10 + (c - 'A');
+        }
     }
     
 }
