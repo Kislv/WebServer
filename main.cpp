@@ -66,7 +66,7 @@ int main(int argc, char const* argv[])
         perror("listen");
         exit(EXIT_FAILURE);
     }
-    
+
     while (true) {
         if ((new_socket
             = accept(server_fd, (struct sockaddr*)&address,
@@ -82,9 +82,6 @@ int main(int argc, char const* argv[])
 
         Request request;
         request.parse(buffer);
-        if (request.method == "HEAD") {
-            std::cout<<"HEADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 1\n";
-        }
 
         #ifdef DEBUG
         request.print();
@@ -95,47 +92,35 @@ int main(int argc, char const* argv[])
         // TODO check is file exist 404
         // std::cout<<"CHECKPOINT 1"<<std::endl;
         response.checkPermissions(request); 
-                if (request.method == "HEAD") {
-            std::cout<<"HEADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 2\n";
-        }
+
         // std::cout<<"CHECKPOINT 2"<<std::endl;
         if (response.status == 200){
             fileExist(request, response);
         }
-        if (request.method == "HEAD") {
-            std::cout<<"HEADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 3\n";
-        }
+
         std::string fullFile;
         int fileSize  = 0;
         if (response.status == 200 && request.method == "GET") {
             fullFile = readFile(request) + '\n';
             fileSize = fileLength(request);
         }
-        if (request.method == "HEAD") {
-            std::cout<<"HEADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 4\n";
-        }
+
 
         std::string headers = response.buildHeaders(fileSize, request.url);
 
-        if (request.method == "HEAD") {
-            std::cout<<"HEADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 5\n";
-        }
+
         #ifdef DEBUG
         response.print(headers);
         // std::cout<<"FULLFILE::::::::::::::::::::::"<<fullFile<< std::endl;
         #endif
-        if (request.method == "HEAD") {
-            std::cout<<"HEADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 6\n";
-        }
+
         if (response.status == 200  && request.method == "GET") {
             headers += fullFile;
         }
         if (request.method == "HEAD") {
             headers += '\n';
         }
-        if (request.method == "HEAD") {
-            std::cout<<"HEADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 7\n";
-        }
+
 
         std::cout<<"*****************************************************************************************************************"<<std::endl;
         if((send(new_socket, &(headers)[0], headers.size()+1, 0)) > 0){
@@ -144,10 +129,7 @@ int main(int argc, char const* argv[])
         else{
             printf("failed sending message\n");
         }
-        if (request.method == "HEAD") {
-            std::cout<<"HEADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD 8\n";
-            close(new_socket);
-        }
+
         // printf("Hello message sent\n");
 
         // closing the connected socket

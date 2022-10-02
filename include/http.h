@@ -18,6 +18,7 @@ public:
     std::string protocol;
     std::vector<std::pair<std::string, std::string>> headers;
     std::vector<char> content;
+    bool isIndex = false;
     void parse(std::string request);
     void methodToEnum(std::string str);
     void print ();

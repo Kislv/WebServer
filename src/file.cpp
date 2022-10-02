@@ -36,9 +36,15 @@ std::string readFile (Request request) {
 
 void fileExist (Request request,  Response &response){
     if (!std::filesystem::exists(DOCUMENT_ROOT + request.buildFilePath())) {
-        response.status = 404;
-        response.explanation = "Not Found";
-        return;
+        if (!request.isIndex){
+            response.status = 404;
+            response.explanation = "Not Found";
+            return;
+        } else {
+            response.status = 403;
+            response.explanation = "Forbidden";
+            return;
+        }
     }
 };
 

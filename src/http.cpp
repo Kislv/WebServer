@@ -8,7 +8,16 @@
 
 const std::string HTMLEXTENSION = "html";
 const std::string DEFAULTFILE = "index.html";
-
+const std::unordered_map<std::string, std::string> extensionsContentType {
+    {"html", "text/html"},
+    {"css", "text/css"},
+    {"js", "application/javascript"},
+    {"jpg", "image/jpeg"},
+    {"jpeg", "image/jpeg"},
+    {"png", "image/png"},
+    {"gif", "image/gif"},
+    {"swf", "application/x-shockwave-flash"}
+};
 
 void Request::parse(std::string request){
     int methodEnd = request.find(' ');
@@ -37,27 +46,20 @@ void Request::print(){
 std::string Request::buildFilePath() {
     // Without "/"
     url = url.substr(1);
-    if(url == "") {
-        return "index.html";
+    size_t lastPoint = url.find_last_of('.');
+    size_t lastSlash = url.find_last_of('/');
+    if (lastPoint != std::string::npos && lastSlash != std::string::npos && extensionsContentType.find(url.substr(lastPoint, lastSlash)) != extensionsContentType.end()){
+        return url.substr(0, url.length() - 1);
     }
-
-    if (url[url.length() - 1] == '/') {
+    if(url == "" || url[url.length() - 1] =='/' && url.find_last_of('.') ) {
+        isIndex = true;
         return url + DEFAULTFILE;
     }
     return url;
 };
 
 std::string Response::defineContentType(std::string url) const {
-    const std::unordered_map<std::string, std::string> extensionsContentType {
-        {"html", "text/html"},
-        {"css", "text/css"},
-        {"js", "application/javascript"},
-        {"jpg", "image/jpeg"},
-        {"jpeg", "image/jpeg"},
-        {"png", "image/png"},
-        {"gif", "image/gif"},
-        {"swf", "application/x-shockwave-flash"}
-    };
+
     // TODO get pos of last point
     std::size_t pos = url.find_last_of('.');
     if (pos == std::string::npos) {
