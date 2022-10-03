@@ -4,8 +4,11 @@
 #include <fstream>
 
 #include "http.h"
-
-const std::string DOCUMENT_ROOT = "../../Other/http-test-suite/";
+// For docker container
+const std::string DOCUMENT_ROOT = "../";
+// const std::string DOCUMENT_ROOT = "/home/viktor/Projects/Technopark/3Semestr/Highload/Other/http-test-suite/";
+// For local running
+// const std::string DOCUMENT_ROOT = "../../Other/http-test-suite/";
 // const std::string DOCUMENT_ROOT = "../../Other/http-test-suite/httptest/";
 // const std::string DOCUMENT_ROOT = "../Storage/";
 
