@@ -13,7 +13,6 @@ enum class Method
 class Request {
 public:
     std::string method;
-    // Method method;
     std::string url;
     std::string protocol;
     std::vector<std::pair<std::string, std::string>> headers;

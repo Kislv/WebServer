@@ -1,5 +1,3 @@
 build
 index.html
 Storage
-include/threadPool.h
-src/threadPool.cpp

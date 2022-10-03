@@ -8,4 +8,4 @@ project(WebServer)
 # add the executable
 include_directories(include)
 
-add_executable(WebServer main.cpp src/http.cpp src/file.cpp)
+add_executable(WebServer main.cpp src/http.cpp src/file.cpp src/threadPool.cpp src/job.cpp)

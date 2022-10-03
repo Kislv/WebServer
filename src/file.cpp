@@ -10,33 +10,10 @@ std::string readFile (Request request) {
 
     file.close();
     return fl.str();
-
-    // std::ifstream myfile; 
-    // myfile.open(DOCUMENT_ROOT + request.buildFilePath());
-    // // myfile.open("../page/_html.html");
-    // std::string mystring, fullFile;
-
-
-    // if ( myfile.is_open() ) { // always check whether the file is open
-    //     while (myfile.good()) {
-    //         std::getline(myfile, mystring);
-    //         // myfile >> mystring;
-    //         fullFile += mystring;
-    //     // std::cout << mystring;
-    //     // write(new_socket,  &(mystring[0]), mystring.size()+1);
-    //     }
-    //     // std::cout <<"My string: "<< mystring << std::endl; // pipe stream's content to standard output
-    // }
-    // else{
-    // std::cout <<"ERROR OPEN My string: "<< mystring << std::endl; // pipe stream's content to standard output
-
-    // }
-    // return fullFile;
 }
 
 void fileExist (Request request,  Response &response){
     std::string filePath = DOCUMENT_ROOT + request.buildFilePath();
-    std::cout<<"filePath: "<<filePath<<std::endl;
 
     if (!std::filesystem::exists(filePath)) {
         if (!request.isIndex){
@@ -45,7 +22,6 @@ void fileExist (Request request,  Response &response){
             return;
         } else {
             response.status = 403;
-            std::cout<<"403 45"<<std::endl;
             response.explanation = "Forbidden";
             return;
         }

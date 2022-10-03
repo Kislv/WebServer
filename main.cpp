@@ -1,23 +1,22 @@
-// Server side C/C++ program to demonstrate Socket
-// programming
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <fstream>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <netinet/in.h>
 #include <iostream>
-#include <fstream>
 
 #include "include/http.h"
 #include "include/file.h"
+#include "include/threadPool.h"
 
 #define PORT 8080
 #define GET "GET"
 #define HEAD "HEAD"
+#define THREADQUANTITY 8
 
-#define DEBUG
-
+// #define DEBUG
 
 int intLength (int n) { 
     int base = 10;
@@ -29,77 +28,6 @@ int intLength (int n) {
     return number_of_digits;
 }
 
-void job (int new_socket) {
-    if ((new_socket
-        = accept(server_fd, (struct sockaddr*)&address,
-                (socklen_t*)&addrlen))
-        < 0) {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
-
-    valread  =  read(new_socket, buffer, 1024);
-
-    Request request;
-    request.parse(buffer);
-
-    #ifdef DEBUG
-    // printf("%s\n", buffer);
-    request.print();
-    #endif
-
-    Response response;
-
-    // TODO check is file exist 404
-    // std::cout<<"CHECKPOINT 1"<<std::endl;
-    response.checkPermissions(request); 
-
-    // std::cout<<"CHECKPOINT 2"<<std::endl;
-    if (response.status == 200){
-        fileExist(request, response);
-    }
-
-    std::string fullFile;
-    int fileSize  = 0;
-    if (response.status == 200 && (request.method == "GET" || request.method == "HEAD")) {
-        // fullFile = readFile(request) ;
-        fullFile = readFile(request);
-        fileSize = fileLength(request);
-    }
-
-
-    std::string headers = response.buildHeaders(fileSize, request.url);
-
-
-    #ifdef DEBUG
-    // std::cout<<"FULLFILE::::::::::::::::::::::"<<fullFile<< std::endl;
-    #endif
-    response.print(headers);
-    if (response.status == 200  && request.method == "GET") {
-    // if (response.status == 200  && request.method == "GET" && request.content.size() < 200) {
-        headers += fullFile;
-        // headers += "\r\n\r\n";
-    }
-    if (request.method == "HEAD") {
-        // headers += "\r\n\r\n";
-        // headers += '\n';
-    }
-
-
-    std::cout<<"*****************************************************************************************************************"<<std::endl;
-    if((send(new_socket, &(headers)[0], headers.size(), 0)) > 0){
-        // printf("successed sending message\n");
-    }     
-    else{
-        printf("failed sending message\n");
-    }
-
-    // printf("Hello message sent\n");
-
-    // closing the connected socket
-    close(new_socket);
-}
-
 int main(int argc, char const* argv[])
 {
     std::cout<<"SERVER IS STARTED"<<std::endl;
@@ -109,13 +37,11 @@ int main(int argc, char const* argv[])
 	int addrlen = sizeof(address);
 	char buffer[1024] = { 0 };
 
-	// Creating socket file descriptor
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("socket failed");
 		exit(EXIT_FAILURE);
 	}
 
-	// Forcefully attaching socket to the port 8080
 	if (setsockopt(server_fd, SOL_SOCKET,
 				SO_REUSEADDR | SO_REUSEPORT, &opt,
 				sizeof(opt))) {
@@ -127,7 +53,6 @@ int main(int argc, char const* argv[])
 	address.sin_port = htons(PORT);
 
 
-	// Forcefully attaching socket to the port 8080
 	if (bind(server_fd, (struct sockaddr*)&address,
 			sizeof(address))
 		< 0) {
@@ -138,6 +63,8 @@ int main(int argc, char const* argv[])
         perror("listen");
         exit(EXIT_FAILURE);
     }
+
+    ThreadPool threadPool(THREADQUANTITY, DOCUMENT_ROOT);
 
     while (true) {
         if ((new_socket
@@ -150,67 +77,9 @@ int main(int argc, char const* argv[])
 
         valread  =  read(new_socket, buffer, 1024);
 
-        Request request;
-        request.parse(buffer);
-
-        #ifdef DEBUG
-        // printf("%s\n", buffer);
-        request.print();
-        #endif
-
-        Response response;
-
-        // TODO check is file exist 404
-        // std::cout<<"CHECKPOINT 1"<<std::endl;
-        response.checkPermissions(request); 
-
-        // std::cout<<"CHECKPOINT 2"<<std::endl;
-        if (response.status == 200){
-            fileExist(request, response);
-        }
-
-        std::string fullFile;
-        int fileSize  = 0;
-        if (response.status == 200 && (request.method == "GET" || request.method == "HEAD")) {
-            // fullFile = readFile(request) ;
-            fullFile = readFile(request);
-            fileSize = fileLength(request);
-        }
-
-
-        std::string headers = response.buildHeaders(fileSize, request.url);
-
-
-        #ifdef DEBUG
-        // std::cout<<"FULLFILE::::::::::::::::::::::"<<fullFile<< std::endl;
-        #endif
-        response.print(headers);
-        if (response.status == 200  && request.method == "GET") {
-        // if (response.status == 200  && request.method == "GET" && request.content.size() < 200) {
-            headers += fullFile;
-            // headers += "\r\n\r\n";
-        }
-        if (request.method == "HEAD") {
-            // headers += "\r\n\r\n";
-            // headers += '\n';
-        }
-
-
-        std::cout<<"*****************************************************************************************************************"<<std::endl;
-        if((send(new_socket, &(headers)[0], headers.size(), 0)) > 0){
-            // printf("successed sending message\n");
-        }     
-        else{
-            printf("failed sending message\n");
-        }
-
-        // printf("Hello message sent\n");
-
-        // closing the connected socket
-	    close(new_socket);
+        threadPool.AddToQueue(new_socket, std::string(buffer));
     }
 
-	// closing the listening socket
 	shutdown(server_fd, SHUT_RDWR);
 	return 0;
 }

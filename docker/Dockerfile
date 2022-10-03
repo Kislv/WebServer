@@ -7,13 +7,7 @@ RUN apt-get update && \
     make \
     g++ \
     cmake
-
-# RUN pacman -S snapd && \
-#     pacman -S \
-#     make \
-#     gcc \
-#     cmake
-
+    
 COPY . /app
 COPY . /var/www
 
