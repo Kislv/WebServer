@@ -7,6 +7,7 @@ C++, thread pool. Thread pool - создается набор (пул) пото�
 ```
 sudo docker rm -vf webservercontainer || true && sudo docker build -f ./docker/Dockerfile --tag webserver . && sudo  docker run -p 8080:8080 --name webservercontainer -t webserver
 ```
+## Docker hub image https://hub.docker.com/r/kislv/webserver
 
 ## Benchmarks
 
