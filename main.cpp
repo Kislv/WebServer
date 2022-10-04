@@ -14,7 +14,8 @@
 #define PORT 8080
 #define GET "GET"
 #define HEAD "HEAD"
-#define THREADQUANTITY 8
+// TODO read from config
+#define THREADQUANTITY 1
 
 // #define DEBUG
 

@@ -2,10 +2,12 @@ FROM ubuntu:latest as executor
 
 USER root
 
-RUN apt-get update && \
+# TODO delete updating, add static release
+RUN 
+# RUN apt-get update && \
     apt-get -y install --no-install-recommends \
-    make \
-    g++ \
+    make 4.3\
+    g++ 12.1.1\
     cmake
     
 COPY . /app

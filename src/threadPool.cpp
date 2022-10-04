@@ -9,9 +9,6 @@ ThreadPool::ThreadPool(unsigned int threadNumber, std::string documentRoot) : do
     if (threadNumber < 1) {
         threadNumber = 1;
     }
-    if (threadNumber > CORESQUANTITY) {
-        threadNumber = CORESQUANTITY;
-    }
 
     for (int i = 0; i < threadNumber; i++) {
         threads.emplace_back(&ThreadPool::Work, this);
