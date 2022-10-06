@@ -10,12 +10,7 @@
 #include "include/http.h"
 #include "include/file.h"
 #include "include/threadPool.h"
-
-#define PORT 8080
-#define GET "GET"
-#define HEAD "HEAD"
-// TODO read from config
-#define THREADQUANTITY 1
+#include "include/config.h"
 
 // #define DEBUG
 
@@ -31,6 +26,8 @@ int intLength (int n) {
 
 int main(int argc, char const* argv[])
 {
+	std::string configPath = "../serverConfig.conf";
+	Config config(configPath);
     std::cout<<"SERVER IS STARTED"<<std::endl;
 	int server_fd, new_socket, valread;
 	struct sockaddr_in address;
@@ -51,7 +48,7 @@ int main(int argc, char const* argv[])
 	}
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
+	address.sin_port = htons(config.port);
 
 
 	if (bind(server_fd, (struct sockaddr*)&address,
@@ -65,7 +62,7 @@ int main(int argc, char const* argv[])
         exit(EXIT_FAILURE);
     }
 
-    ThreadPool threadPool(THREADQUANTITY, DOCUMENT_ROOT);
+    ThreadPool threadPool(config.threadQuantity, config.documentRoot);
 
     while (true) {
         if ((new_socket

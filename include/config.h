@@ -5,9 +5,10 @@
 
 class Config {
 public:
-    unsigned int threadQuantity = 8;
+    int threadQuantity = 8;
     std::string documentRoot =  "../";
+    int port =  8080;
     Config(std::string configPath);
 private:
-    void parse (std::string buffer) const;
-}
+    void parse (std::string buffer);
+};
