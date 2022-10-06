@@ -3,11 +3,11 @@ FROM ubuntu:latest as executor
 USER root
 
 # TODO delete updating, add static release
-RUN 
-# RUN apt-get update && \
+# RUN 
+RUN apt-get update && \
     apt-get -y install --no-install-recommends \
-    make 4.3\
-    g++ 12.1.1\
+    make\
+    g++\
     cmake
     
 COPY . /app
